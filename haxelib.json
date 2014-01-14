@@ -1,0 +1,12 @@
+{
+  "name": "livehaxe",
+  "license": "MIT",
+  "tags": ["build","workflow","live","cli","tools","compile"],
+  "description": "LiveHaxe - a tool to monitor your project for changes and automatically recompile when changes are detected.",
+  "contributors": ["fponticelli","jason"],
+  "releasenote": "Initial release to Haxelib",
+  "version": "0.1.0",
+  "url": "https://github.com/fponticelli/livehaxe/",
+  "classPath": "src/",
+  "dependencies": {}
+}
