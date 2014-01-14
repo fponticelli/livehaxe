@@ -1,3 +1,5 @@
+import haxe.io.Path;
+
 import monitor.*;
 
 class LiveHaxe
@@ -38,6 +40,11 @@ class LiveHaxe
 				lesslinenumbers : null,
 				errorfile : null
 			};
+		// If livehaxe is called from 'haxelib run livehaxe', the first arg is the path of the users CWD, so switch to it.
+		var calledFrom = new Path( Sys.executablePath() );
+		if ( calledFrom.file=="haxelib" || calledFrom.file=="livehaxe" ) {
+			Sys.setCwd( args.pop() );
+		}
 		while(args.length > 0)
 		{
 			switch(args.shift().toLowerCase())
