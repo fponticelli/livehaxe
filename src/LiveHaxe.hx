@@ -1,3 +1,5 @@
+import haxe.io.Path;
+
 import monitor.*;
 
 class LiveHaxe
@@ -35,8 +37,14 @@ class LiveHaxe
 				haxeport : 7777,
 				hashaxe  : false,
 				lesscompress : false,
-				lesslinenumbers : null
+				lesslinenumbers : null,
+				errorfile : null
 			};
+		// If livehaxe is called from 'haxelib run livehaxe', the first arg is the path of the users CWD, so switch to it.
+		var calledFrom = new Path( Sys.executablePath() );
+		if ( calledFrom.file=="haxelib" || calledFrom.file=="livehaxe" ) {
+			Sys.setCwd( args.pop() );
+		}
 		while(args.length > 0)
 		{
 			switch(args.shift().toLowerCase())
@@ -54,6 +62,8 @@ class LiveHaxe
 					monitors.push(MonitorHaxe.createFromArguments(args));
 				case "-less":
 					monitors.push(MonitorLess.createFromArguments(args));
+				case "-errorpage":
+					config.errorfile = consumeArgument(args);
 				case invalid:
 					throw 'invalid command: $invalid';
 			}

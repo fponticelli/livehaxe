@@ -1,5 +1,8 @@
 package monitor;
 
+using StringTools;
+using haxe.io.Path;
+
 class MonitorHaxe implements IMonitor
 {
 	public static function createFromArguments(args : Array<String>)
@@ -13,6 +16,7 @@ class MonitorHaxe implements IMonitor
 	var classpaths : Array<String>;
 	var map : Map<String, Float>;
 	var cwd : String;
+	var errorFile:String;
 
 	public function new(hxml : String)
 	{
@@ -26,6 +30,7 @@ class MonitorHaxe implements IMonitor
 		if(StringTools.endsWith(cwd, "/"))
 			cwd = cwd.substr(0, cwd.length-1);
 		cwd = [cwd].concat(parts).join('/');
+		errorFile = null;
 	}
 
 	public function start()
@@ -46,7 +51,7 @@ class MonitorHaxe implements IMonitor
 		if(!compareMaps(map, newmap)) {
 			// compile
 			LiveHaxe.clear();
-			HaxeService.compile(hxml, port);
+			HaxeService.compile(hxml, port, errorFile);
 			// update map
 			map = newmap;
 		}
@@ -56,6 +61,8 @@ class MonitorHaxe implements IMonitor
 	{
 		if(null != params.haxeport && Std.is(params.haxeport, Int))
 			port = params.haxeport;
+		if(null != params.errorfile && Std.is(params.errorfile, String))
+			errorFile = params.errorfile;
 	}
 
 	function compareMaps(oldmap : Map<String, Float>, newmap : Map<String, Float>)
@@ -73,7 +80,7 @@ class MonitorHaxe implements IMonitor
 		while(re.match(content))
 		{
 			var v = re.matched(1);
-			results.push(v);
+			results.push( v.trim() );
 			content = re.matchedRight();
 		}
 		return results;
@@ -83,7 +90,7 @@ class MonitorHaxe implements IMonitor
 	{
 		var map = new Map();
 		for(cp in classpaths)
-			traverseDirectories(map, cwd + '/' + cp);
+			traverseDirectories(map, (cp.startsWith('/')) ? cp : cwd + '/' + cp);
 		traverseDirectories(map, cwd);
 		return map;
 	}
@@ -93,13 +100,15 @@ class MonitorHaxe implements IMonitor
 		var files = sys.FileSystem.readDirectory(path);
 		for(name in files)
 		{
-			var file = '$path/$name';
+			var file = path.addTrailingSlash()+name;
 			if(sys.FileSystem.isDirectory(file))
 			{
-				traverseDirectories(map, file);
+				// Traverse into other directories, unless it's hidden (we want to avoid '.git' and '.svn' etc).
+				if (StringTools.startsWith(name, ".") == false)
+					traverseDirectories(map, file);
 			} else if(StringTools.endsWith(name, '.hx')) {
-//				if(StringTools.startsWith(file, "./"))
-//					file = file.substr(2);
+				if(StringTools.startsWith(file, "./"))
+					file = file.substr(2);
 				if(map.exists(file))
 					continue;
 				var stat = sys.FileSystem.stat(file);
