@@ -35,7 +35,8 @@ class LiveHaxe
 				haxeport : 7777,
 				hashaxe  : false,
 				lesscompress : false,
-				lesslinenumbers : null
+				lesslinenumbers : null,
+				errorfile : null
 			};
 		while(args.length > 0)
 		{
@@ -54,6 +55,8 @@ class LiveHaxe
 					monitors.push(MonitorHaxe.createFromArguments(args));
 				case "-less":
 					monitors.push(MonitorLess.createFromArguments(args));
+				case "-errorpage":
+					config.errorfile = consumeArgument(args);
 				case invalid:
 					throw 'invalid command: $invalid';
 			}

@@ -1,5 +1,8 @@
 package monitor;
 
+using StringTools;
+using haxe.io.Path;
+
 class MonitorHaxe implements IMonitor
 {
 	public static function createFromArguments(args : Array<String>)
@@ -13,6 +16,7 @@ class MonitorHaxe implements IMonitor
 	var classpaths : Array<String>;
 	var map : Map<String, Float>;
 	var cwd : String;
+	var errorFile:String;
 
 	public function new(hxml : String)
 	{
@@ -26,6 +30,7 @@ class MonitorHaxe implements IMonitor
 		if(StringTools.endsWith(cwd, "/"))
 			cwd = cwd.substr(0, cwd.length-1);
 		cwd = [cwd].concat(parts).join('/');
+		errorFile = null;
 	}
 
 	public function start()
@@ -46,7 +51,7 @@ class MonitorHaxe implements IMonitor
 		if(!compareMaps(map, newmap)) {
 			// compile
 			LiveHaxe.clear();
-			HaxeService.compile(hxml, port);
+			HaxeService.compile(hxml, port, errorFile);
 			// update map
 			map = newmap;
 		}
@@ -56,6 +61,8 @@ class MonitorHaxe implements IMonitor
 	{
 		if(null != params.haxeport && Std.is(params.haxeport, Int))
 			port = params.haxeport;
+		if(null != params.errorfile && Std.is(params.errorfile, String))
+			errorFile = params.errorfile;
 	}
 
 	function compareMaps(oldmap : Map<String, Float>, newmap : Map<String, Float>)
