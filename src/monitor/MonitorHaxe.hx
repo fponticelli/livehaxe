@@ -80,7 +80,7 @@ class MonitorHaxe implements IMonitor
 		while(re.match(content))
 		{
 			var v = re.matched(1);
-			results.push(v);
+			results.push( v.trim() );
 			content = re.matchedRight();
 		}
 		return results;
@@ -90,7 +90,7 @@ class MonitorHaxe implements IMonitor
 	{
 		var map = new Map();
 		for(cp in classpaths)
-			traverseDirectories(map, cwd + '/' + cp);
+			traverseDirectories(map, (cp.startsWith('/')) ? cp : cwd + '/' + cp);
 		traverseDirectories(map, cwd);
 		return map;
 	}
@@ -100,13 +100,15 @@ class MonitorHaxe implements IMonitor
 		var files = sys.FileSystem.readDirectory(path);
 		for(name in files)
 		{
-			var file = '$path/$name';
+			var file = path.addTrailingSlash()+name;
 			if(sys.FileSystem.isDirectory(file))
 			{
-				traverseDirectories(map, file);
+				// Traverse into other directories, unless it's hidden (we want to avoid '.git' and '.svn' etc).
+				if (StringTools.startsWith(name, ".") == false)
+					traverseDirectories(map, file);
 			} else if(StringTools.endsWith(name, '.hx')) {
-//				if(StringTools.startsWith(file, "./"))
-//					file = file.substr(2);
+				if(StringTools.startsWith(file, "./"))
+					file = file.substr(2);
 				if(map.exists(file))
 					continue;
 				var stat = sys.FileSystem.stat(file);
