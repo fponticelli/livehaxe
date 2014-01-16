@@ -1,5 +1,6 @@
 package monitor;
 
+import sys.io.Process;
 using StringTools;
 using haxe.io.Path;
 
@@ -73,17 +74,49 @@ class MonitorHaxe implements IMonitor
 		return true;
 	}
 
-	function parseHxmlClassPaths(content : String)
+	function parseHxmlClassPaths(origContent : String)
 	{
-		var re = ~/^\s*[-]cp\s+([^\n]+)(?:\n|$)/m,
+		var cpRE = ~/^\s*[-]cp\s+([^\n]+)(?:\n|$)/m,
+			libRE = ~/^\s*[-]lib\s+([^: \s]+)(?:\n|$)/m,
 			results = [];
-		while(re.match(content))
+		
+		var content = origContent;
+		while(cpRE.match(content))
 		{
-			var v = re.matched(1);
+			var v = cpRE.matched(1);
 			results.push( v.trim() );
-			content = re.matchedRight();
+			content = cpRE.matchedRight();
 		}
+
+		var content = origContent;
+		var haxelibPath = getCmdOutput("haxelib",["config"]).trim();
+		while(libRE.match(content))
+		{
+			var libName = libRE.matched(1).trim();
+			var libPaths = getCmdOutput("haxelib",["path",libName]);
+			for (line in libPaths.split("\n"))
+			{
+				line = line.trim();
+				var isEmpty = line.length==0;
+				var isDefineLine = line.startsWith("-");
+				var isInsideHaxelibRepo = line.startsWith(haxelibPath);
+				var isAlreadyListed = results.indexOf(line)!=-1;
+				if ( (isEmpty || isDefineLine || isInsideHaxelibRepo || isAlreadyListed)==false ) {
+					results.push(line);
+				}
+			}
+			content = libRE.matchedRight();
+		}
+		Sys.println( 'Monitoring Class Paths:' );
+		for (r in results) Sys.println( ' $r' );
 		return results;
+	}
+
+	function getCmdOutput(cmd : String, args : Array<String>)
+	{
+		var p = new Process(cmd,args);
+		p.exitCode();
+		return p.stdout.readAll().toString();
 	}
 
 	function loadFiles()
