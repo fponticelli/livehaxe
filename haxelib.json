@@ -4,8 +4,8 @@
   "tags": ["build","workflow","live","cli","tools","compile"],
   "description": "LiveHaxe - a tool to monitor your project for changes and automatically recompile when changes are detected.",
   "contributors": ["fponticelli","jason"],
-  "releasenote": "Initial release to Haxelib",
-  "version": "0.1.0",
+  "releasenote": "Monitor classpaths for haxelibs that are outside the main haxelib repo (ie: dev versions)",
+  "version": "0.2.0",
   "url": "https://github.com/fponticelli/livehaxe/",
   "classPath": "src/",
   "dependencies": {}
